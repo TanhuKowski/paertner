@@ -65,6 +65,9 @@ const Users: CollectionConfig = {
     tokenExpiration: 7200,
     maxLoginAttempts: 5,
     lockTime: 600000,
+    // paertner Dashboard (app.paertner.com) edits the website through the REST API with the API key of one
+    // service account, seeded from DASHBOARD_API_KEY in onInit below.
+    useAPIKey: true,
   },
   admin: { useAsTitle: "email" },
   access: {
@@ -224,6 +227,24 @@ const Inquiries: CollectionConfig = {
     },
     text("fingerprint"),
   ],
+  hooks: {
+    // Tell paertner Dashboard about a new inquiry so admins get a notification and an email. The dashboard reads
+    // the inquiry back through the API, so only the id travels. A failure never blocks the visitor's request.
+    afterChange: [
+      ({ doc, operation }) => {
+        const url = process.env.DASHBOARD_URL;
+        const secret = process.env.DASHBOARD_WEBHOOK_SECRET;
+        if (operation !== "create" || !url || !secret) return doc;
+        void fetch(new URL("/api/website/inquiry", url), {
+          method: "POST",
+          headers: { Authorization: "Bearer " + secret, "Content-Type": "application/json" },
+          body: JSON.stringify({ id: doc.id }),
+          signal: AbortSignal.timeout(10000),
+        }).catch(() => undefined);
+        return doc;
+      },
+    ],
+  },
 };
 const Redirects: CollectionConfig = {
   slug: "redirects",
@@ -469,6 +490,23 @@ export default buildConfig({
         },
         overrideAccess: true,
       });
+    }
+    // The service account paertner Dashboard uses. Its API key follows DASHBOARD_API_KEY, so rotating the key is
+    // an env change and a restart; without the variable the account is left as it is.
+    if (process.env.DASHBOARD_API_KEY) {
+      const email = "app@paertner.com";
+      const found = await payload.find({ collection: "users", where: { email: { equals: email } }, limit: 1, overrideAccess: true, showHiddenFields: true });
+      const data = { name: "paertner Dashboard", enableAPIKey: true, apiKey: process.env.DASHBOARD_API_KEY };
+      if (found.docs[0]) {
+        if (found.docs[0].apiKey !== process.env.DASHBOARD_API_KEY || !found.docs[0].enableAPIKey)
+          await payload.update({ collection: "users", id: found.docs[0].id, data, overrideAccess: true });
+      } else {
+        await payload.create({
+          collection: "users",
+          data: { ...data, email, password: crypto.randomUUID() + crypto.randomUUID() },
+          overrideAccess: true,
+        });
+      }
     }
     const existing = await payload.findGlobal({ slug: "site" });
     const fresh = !existing.heroTitle;

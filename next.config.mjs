@@ -12,6 +12,15 @@ export default withPayload({
     ],
   },
   images: { qualities: [75, 85], formats: ["image/webp"] },
+  // The website is managed in paertner Dashboard; Payload's own admin screens are closed. The REST API under /api
+  // stays, since the dashboard edits content through it.
+  async redirects() {
+    const dashboard = (process.env.DASHBOARD_URL || "https://app.paertner.com").replace(/\/$/, "");
+    return [
+      { source: "/admin", destination: dashboard + "/app/website", permanent: false },
+      { source: "/admin/:path*", destination: dashboard + "/app/website", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

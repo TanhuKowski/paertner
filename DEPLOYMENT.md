@@ -122,6 +122,23 @@ The installed deployment script, Compose file and Caddyfile are deliberately
 outside the checkout. Changes to `deploy/` in Git require an explicit server
 installation and validation. Application code updates deploy automatically.
 
+## Content management in paertner Dashboard (since 2026-10-25)
+
+Website content is edited in paertner Dashboard at https://app.paertner.com/app/website (repository
+TanhuKowski/paertner-dashboard, `docs/12-website.md`), not in Payload's admin. `/admin` redirects there
+(`next.config.mjs`); Payload's REST API under `/api` stays and is how the dashboard reads and writes content.
+
+| Variable in `/opt/paertner/shared/app.env` | Purpose |
+| --- | --- |
+| `DASHBOARD_API_KEY` | API key of the service account `app@paertner.com`; `onInit` creates or updates the account with it on every start. Same value as `WEBSITE_API_KEY` in `/opt/paertner-dashboard/shared/app.env`. |
+| `DASHBOARD_URL` | `https://app.paertner.com`: the `/admin` redirect target and the inquiry webhook host. The redirect is fixed at build time from this value or its default. |
+| `DASHBOARD_WEBHOOK_SECRET` | Bearer secret of the inquiry webhook (`POST /api/website/inquiry` on the dashboard). Same value as `WEBSITE_WEBHOOK_SECRET` there. |
+
+Migration `20261025_010959_dashboard_api_key` adds the API key columns to `users`. Rotating the key: set a new value in
+both env files and restart both containers. Without `DASHBOARD_API_KEY` the website works as before and the
+dashboard shows "The website is not connected yet". The older Payload user (`INITIAL_ADMIN_EMAIL`) remains and can
+still sign in to the REST API; it has no admin screens to use.
+
 ## Operational commands
 
 Run on the VPS:
