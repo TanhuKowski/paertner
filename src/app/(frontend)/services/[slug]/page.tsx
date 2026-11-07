@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { getServices, getSite, cms, asset } from "@/lib/cms";
 import { meta, origin } from "@/lib/seo";
 import { Breadcrumb, SceneImage, LinkArrow, Closing } from "@/components/ui";
+import { SERVICE_GROUP } from "@/lib/quote";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
@@ -45,8 +46,8 @@ export default async function Service({ params }: Props) {
         <h1>{s.short}</h1>
         <div className="page-intro">
           <p>{s.intro}</p>
-          <LinkArrow href={"/book?service=" + encodeURIComponent(s.title)}>
-            Book a call
+          <LinkArrow href={SERVICE_GROUP[s.slug] ? "/quote?group=" + SERVICE_GROUP[s.slug] : "/quote"}>
+            Get a quote
           </LinkArrow>
         </div>
       </section>

@@ -121,8 +121,8 @@ export default function Header({
             </a>
           ))}
         </nav>
-        <a href="/book" className="header-cta">
-          Book a call <Arrow size={18} />
+        <a href="/quote" className="header-cta">
+          Get a quote <Arrow size={18} />
         </a>
         <button
           ref={trigger}
@@ -173,8 +173,8 @@ export default function Header({
               <Arrow size={34} />
             </a>
           ))}
-          <a href="/book">
-            <span>04</span>Book a call
+          <a href="/quote">
+            <span>04</span>Get a quote
             <Arrow size={34} />
           </a>
         </nav>

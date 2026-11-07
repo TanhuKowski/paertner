@@ -42,6 +42,8 @@ export default async function Book({
             Tell us a little about your business and what you have in mind. We
             will review your inquiry and work out a time to talk.
           </p>
+          <LinkArrow href="/quote">See packages and get a quote</LinkArrow>
+          <p>Prefer to write first? Use the form, or email us.</p>
           {scheduler ? (
             <LinkArrow href={scheduler}>Choose a time</LinkArrow>
           ) : (
